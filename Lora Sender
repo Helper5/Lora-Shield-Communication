@@ -1,0 +1,33 @@
+#include <SPI.h>      // Library for communication b/w Lora shields
+#include <LoRa.h>   // Lora Shield library
+
+void setup() {
+  Serial.begin(9600);   // Initializing the serial monitor
+  while (!Serial);         // Check the availablity of serial monitor
+
+  if (!LoRa.begin(433E6)) {  // Checking the lora (433Hz) availability  
+    Serial.println("LoRa initialization failed. Check your connections.");
+    while (true);   
+  }
+  Serial.println("Lora Sender Initialize"); // Lora is available
+  delay(200);
+  Serial.println("Sender connected to Reciever");
+}
+
+void loop() {
+  if (Serial.available()) {   // Check the availablity of serial monitor
+    String data = Serial.readString(); // Serial monitor data is saved in variable
+    LoRa.beginPacket(); // Convert data into packet form which is suitable for        transmission
+    LoRa.print(data); // Adding data into packet
+    LoRa.endPacket();
+    Serial.println("Data sent: " + data);
+  }
+  
+  int packetSize = LoRa.parsePacket();  // Check packet is available to read
+  if (packetSize) { 
+    while (LoRa.available()) { 
+      String data = LoRa.readString();
+      Serial.println("Data received: " + data);
+    }
+  }
+}
