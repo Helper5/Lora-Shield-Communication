@@ -1,0 +1,52 @@
+#include <SPI.h>
+#include <SPI.h>
+#include <LoRa.h>
+
+#define LORA_SCK 13     // LoRa SCK pin
+#define LORA_MISO 12    // LoRa MISO pin
+#define LORA_MOSI 11    // LoRa MOSI pin
+#define LORA_SS 10      // LoRa SS pin
+#define LORA_RST 9      // LoRa RST pin
+#define LORA_DIO0 2     // LoRa DIO0 pin
+
+#define BAND 433E6      // Set the frequency band (433 MHz)
+#define SPREADING_FACTOR 7  // Set the spreading factor (7)
+
+void setup() {
+  Serial.begin(9600);
+  while (!Serial);
+
+  // Initialize LoRa module
+  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
+  if (!LoRa.begin(BAND)) {
+    Serial.println("LoRa initialization failed. Check your connections.");
+    while (true);
+  }
+  LoRa.setSpreadingFactor(SPREADING_FACTOR);
+  Serial.println("LoRa initialization successful!");
+
+  // Set the transmit power (optional)
+  LoRa.setTxPower(20);  // Set transmit power to 20 dBm
+}
+
+void loop() {
+  // Check if there are any incoming messages
+  if (LoRa.parsePacket()) {
+    String receivedMessage = "";
+
+    // Read the received message byte by byte
+    while (LoRa.available()) {
+      receivedMessage += (char)LoRa.read();
+    }
+
+    // Print the received message
+    Serial.println("Received message: " + receivedMessage);
+
+    // Send a response message
+    String responseMessage = "Message received!";
+    LoRa.beginPacket();
+    LoRa.print(responseMessage);
+    LoRa.endPacket();
+    Serial.println("Sent response: " + responseMessage);
+  }
+}
